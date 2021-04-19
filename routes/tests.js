@@ -13,7 +13,6 @@ router.get("/test", async (req, res) => {
     code: req.query.code,
     environment: process.env.NODE_ENV,
   });
-
   if (user) {
     let room = await Room.findOne({
       name: user.room,
@@ -49,7 +48,7 @@ router.get("/test", async (req, res) => {
           type: test.exercises[room.lastExercise].type,
         };
       }
-
+      
       res.send(exercise);
     } else {
       res.send({ finished: true });

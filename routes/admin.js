@@ -294,33 +294,32 @@ router.put("/tests/:sessionName", (req, res) => {
   const adminSecret = req.headers.authorization;
 
   if (adminSecret === process.env.ADMIN_SECRET) {
-    try {
-      Test.findOneAndUpdate(
-        {
-          environment: process.env.NODE_ENV,
-          session: req.params.sessionName,
-          orderNumber: req.body.orderNumber,
-        },
-        req.body
-      )
-        .then((test) => {
-          res.send(test);
-        })
-        .catch((error) => {
-          let errorMsg = "Something bad happened...";
-          if (error.code === 11000) {
-            errorMsg = "You should choose another name that is not duplicated.";
-          } else if (error.message) {
-            errorMsg = error.message;
+    req.body.orderNumber=parseInt(req.body.orderNumber);
+    req.body.time = parseInt(req.body.time);
+    req.body.exercises.forEach(e => {
+      e.time=parseInt(e.time);
+    });
+
+    Test.findOneAndUpdate(
+      {
+        environment: process.env.NODE_ENV,
+        session: req.params.sessionName,
+        orderNumber: req.body.orderNumber,
+      },
+      req.body
+      , function (err, test) {
+        if (err) {
+          if (err.name == 'ValidationError') {
+            res.status(422).send(err);
           }
-          res.status(400).send({ errorMsg });
-        });
-    } catch (e) {
-      console.log(e);
-      res.sendStatus(500);
-    }
-  } else {
-    res.sendStatus(401);
+          else {
+            res.status(500).send(err);
+          }
+        }
+        else {
+          res.status(200).json(test);
+        }
+      });
   }
 });
 
