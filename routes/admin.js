@@ -59,7 +59,7 @@ router.get("/sessions", async (req, res) => {
 
 router.get("/sessions/:sessionName", (req, res) => {
   const adminSecret = req.headers.authorization;
-
+  console.log("ENTORNO DE NODE: "+process.env.NODE_ENV);
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
       Session.findOne({
@@ -307,7 +307,7 @@ router.put("/tests/:sessionName", (req, res) => {
         orderNumber: req.body.orderNumber,
       },
       req.body
-      , function (err, test) {
+      ,function (err, test) {
         if (err) {
           if (err.name == 'ValidationError') {
             res.status(422).send(err);
