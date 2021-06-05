@@ -361,4 +361,27 @@ router.delete("/tests/:testName/exercises/:exercise/validations/:validation", as
   }
 });
 
+router.get("/database/:dataset", async (req, res) => {
+  const adminSecret = req.headers.authorization;
+
+  if (adminSecret === process.env.ADMIN_SECRET) {
+    
+    
+    // await Test.findOne({
+    //   name: req.params.testName,
+    //   environment: process.env.NODE_ENV,
+    // }, async function (err, test) {
+    //   if (err) {
+    //     if (err.name == 'ValidationError') {
+    //       res.status(422).send(err);
+    //     } else {
+    //       res.status(500).send(err);
+    //     }
+    //   } else { //Number of exercise beggining from 0 => 1=0
+    //     res.status(200).json(test.exercises[req.params.exercise - 1]);
+    //   }
+    // });
+  }
+});
+
 module.exports = router;

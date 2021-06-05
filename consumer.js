@@ -254,8 +254,8 @@ async function executeSession(sessionName, io) {
   io.to(sessionName).emit(event[0],event[1]);
 
   lastSessionEvent.set(sessionName,event);
-  Logger.dbg("executeSession - lastSessionEvent saved",event[0]);
-        
+  Logger.dbg("executeSession - lastSessionEvent saved", event[0]);
+  Logger.dbg("executeSession - session", session);
   const interval = setInterval(function () {
     
     if (session.testCounter == numTests) {
@@ -321,9 +321,11 @@ async function executeSession(sessionName, io) {
         });
         timer = exercise.time;
       }
-      session.exerciseCounter++;
-      Logger.dbg(" testCounter: "+session.testCounter +" of "+numTests+" , exerciseCounter: "+session.exerciseCounter+" of "+maxExercises);
-
+      //TODO - Esto no tiene sentido porque cuando se ejecuta el primer ejercicio se debe esperar a que termine, no incrementar este número ya que hace que entre en el elif
+      if(timer == 0) { //Si hemos llegado al tiempo del ejercicio, pasamos al siguiente
+        session.exerciseCounter++;
+        Logger.dbg(" testCounter: "+session.testCounter +" of "+numTests+" , exerciseCounter: "+session.exerciseCounter+" of "+maxExercises);
+      }
       session.save();
       Logger.dbg("executeSession - session saved ");
     }
