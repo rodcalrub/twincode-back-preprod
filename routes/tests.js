@@ -361,12 +361,13 @@ router.delete("/tests/:testName/exercises/:exercise/validations/:validation", as
   }
 });
 
-router.get("/database/:dataset", async (req, res) => {
+router.get("/database", async (req, res) => {
+
   const adminSecret = req.headers.authorization;
 
   if (adminSecret === process.env.ADMIN_SECRET) {
     
-    
+    res.status(200).send("YES");
     // await Test.findOne({
     //   name: req.params.testName,
     //   environment: process.env.NODE_ENV,
