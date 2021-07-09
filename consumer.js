@@ -257,15 +257,14 @@ async function executeSession(sessionName, io) {
   Logger.dbg("executeSession - lastSessionEvent saved", event[0]);
   Logger.dbg("executeSession - session", session);
   const interval = setInterval(function () {
-    
+
     if (session.testCounter == numTests) {
       console.log("There are no more tests, the session <"+session.name+"> has finish!");
       Logger.dbg("executeSession - emitting 'finish' event in session "+session.name+" #############################");
       
       io.to(sessionName).emit("finish");
       lastSessionEvent.set(sessionName,["finish"]);
-      Logger.dbg("executeSession - lastSessionEvent saved",event);
-        
+      Logger.dbg("executeSession - lastSessionEvent saved",event);        
       clearInterval(interval);
     } else if (timer > 0) {
       io.to(sessionName).emit("countDown", {
@@ -308,12 +307,13 @@ async function executeSession(sessionName, io) {
             maxTime: exercise.time,
             exerciseDescription: exercise.description,
             exerciseType: exercise.type,
-            inputs: exercise.inputs,
+            validations: exercise.validations,
           },
         }];
         io.to(sessionName).emit(event[0],event[1]);
         lastSessionEvent.set(sessionName,event);
         Logger.dbg("executeSession - lastSessionEvent saved",event[0]);
+        Logger.dbg("executeSession - EVENT: ",event);
 
         sessions.set(session.name, {
           session: session,
@@ -743,7 +743,6 @@ module.exports = {
           Logger.dbg("EVENT msg - tokens.get(pack.token) ",tokens.get(pack.token));  
           return;
         }
-        
 
         if (sessions.get(tokens.get(pack.token)).exerciseType == "PAIR") {
           io.sockets.emit("msg", pack);

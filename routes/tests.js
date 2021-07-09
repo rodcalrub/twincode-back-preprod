@@ -62,18 +62,17 @@ router.get("/test", async (req, res) => {
 
 router.post("/verify", async (req, res) => {
   const user = await User.findOne({
-    code: req.body.user,
+    code: req.body["user"],
     environment: process.env.NODE_ENV,
   });
   Logger.dbg("/verify", req.body);
-
+  Logger.dbg("user", JSON.stringify(user));
   if (user) {
     console.log("User " + user.token);
     let session = await Session.findOne({
       name: user.subject,
       environment: process.env.NODE_ENV,
     });
-
     Logger.dbg("/verify - Trying to validate " + session.testCounter + " " + session.exerciseCounter);
 
     const test = await Test.findOne({
@@ -81,26 +80,27 @@ router.post("/verify", async (req, res) => {
       environment: process.env.NODE_ENV,
       session: user.subject,
     });
+    
 
-    const exercise = test.exercises[session.exerciseCounter - 1];
+    // const exercise = test.exercises[session.exerciseCounter - 1]; //TODO: Changed from
+    const exercise = test.exercises[session.exerciseCounter]; //TODO: Changed to 
+    Logger.dbg("/verify - Validate exercise:\n  " + exercise);
 
     if (exercise) {
       Logger.dbg("/verify - Validate exercise:\n  " + exercise.description.substring(0, Math.min(80, exercise.description.length)) + "...");
 
-      const solutions = exercise.solutions;
+      const validations = exercise.validations;
 
       let isCorrect = true;
 
-      for (var i = 0; i < solutions.length; i++) {
-
-        let correctSolution = JSON.stringify(solutions[i]) === JSON.stringify(req.body.solutions[i]);
-
+      for (var i = 0; i < validations.length; i++) {
+        let correctSolution = validations[i].solution === JSON.stringify(req.body.solution);
         isCorrect = isCorrect && correctSolution;
 
         Logger.dbg("/verify - "
           + "(" + i + ")"
-          + " Submitted Solution: <" + req.body.solutions[i] + ">,"
-          + " Expected Solution: <" + solutions[i] + ">,"
+          + " Submitted Solution: <" + req.body.solution + ">,"
+          + " Expected Solution: <" + validations[i].solution + ">,"
           + " Correct Solution: " + correctSolution + ","
           + " Global verification: " + isCorrect);
 
