@@ -26,7 +26,7 @@ class Logger {
     });
     log.save((err) => {
       if (err) {
-        console.log("There has been an error logging to Mongo: " + err);
+        console.log("There has been an error logging to Mongo: " + err); 
       }else{
         if(category != "Code")
           this.dbg("Saving Log - "+category+" - "+userId+": ",payload);
