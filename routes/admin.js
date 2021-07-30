@@ -8,7 +8,10 @@ const User = require("../models/User.js");
 const Session = require("../models/Session.js");
 const Log = require("../models/Log.js");
 const consumer = require("../consumer.js");
+// Import csv-writer
+const csvwriter = require('csv-writer');
 
+var createCsvWriter = csvwriter.createObjectCsvWriter
 /**
  * SESSIONS
  */
@@ -969,8 +972,9 @@ router.get("/dataset/:sessionName", async (req, res) => {
           room: user.room,
           blind: user.blind,
           jsexp: user.jsexp,
-          data,
+          data: data,
         });
+
         // TODO: trying to get all the report from one user
         // if (userOrdered[user.room]) {
         //   userOrdered[user.room].push({ name: user.code, session: req.params.sessionName, room: user.room , data });
@@ -989,16 +993,29 @@ router.get("/dataset/:sessionName", async (req, res) => {
         let calc = calculateStudentsData(dataUsers);
         for (let i = 0; i < userOrdered.length; i++) { //student
           for (let j = 0; j < calc.length; j++) { //tipo
-            let tipo = calc[0]
-            for (let k = 0; k < Object.keys(Object.values(calc[j])[0]).length; k++) { //ejercicio
-              let key = Object.keys(calc[j])[0];
-              let value = calc[Object.keys(calc)[j]];
-              let obj = { [calc[j]]:Object.values(value)[0] }
-              userOrdered[i].data[key].push(obj);
+            let tipo = calc[j];
+            let key = Object.keys(tipo)[0];
+            let value = Object.values(calc[Object.keys(calc)[j]])[0];
+            let values = [];
+            for (let y = 0; y < Object.keys(value).length; y++) {
+              let ky = Object.keys(value)[y];
+              let v = Object.values(value)[y];
+              values.push({ [ky + '-T']: v });
             }
+            userOrdered[i][key] = userOrdered[i].data[key].concat(values);
+            for (let l=0;l<userOrdered[i][key].length;l++){
+              let m = Object.keys(userOrdered[i][key][l])[0];
+              userOrdered[i][key+m]=Object.values(userOrdered[i][key][l])[0];
+            }
+            delete userOrdered[i][key]
+            // userOrdered[i][key+''] = userOrdered[i].data[key];
           }
+          delete userOrdered[i].data;
         }
+        // userOrdered = JSON.stringify(userOrdered);
+        // console.log(userOrdered);
         res.send(userOrdered);
+        writeCsv(userOrdered);
       });
     } catch (e) {
       console.log(e);
@@ -1055,4 +1072,30 @@ function dataStudents(data, type, keys) {
     }
   }
   return result;
+}
+
+function writeCsv(userOrdered) {
+
+  var keys = Object.keys(userOrdered[0]);
+  var header = [];
+  for(let n=0;n<keys.length;n++){
+    header.push({
+      id : keys[n],
+      title : keys[n].toUpperCase()
+    });
+  }
+  // Passing the column names intp the module
+  const csvWriter = createCsvWriter({
+  
+    // Output csv file name is geek_data
+    path: 'data.csv',
+    header: header
+  });
+
+  // Writerecords function to add records
+  csvWriter
+    .writeRecords(userOrdered)
+    .then(() => console.log('Data uploaded into csv successfully'));
+
+
 }
