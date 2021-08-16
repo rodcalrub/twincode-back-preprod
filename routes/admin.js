@@ -141,7 +141,7 @@ router.get("/sessions/:sessionName/:type", async (req, res) => {
       });
       const results = Promise.all(actions);
       results.then(() => {
-        res.send(userOrdered[0]); // Corrected to (no respone in reports)
+        res.send(userOrdered); // Corrected to (no respone in reports)
         // res.send(userOrdered); TODO: Corrected from
       });
     } catch (e) {
