@@ -133,18 +133,18 @@ router.get("/sessions/:sessionName/:type", async (req, res) => {
         environment: process.env.NODE_ENV,
         subject: req.params.sessionName,
       });
-      let userOrdered = [];
+      let userSorted = [];
       const actions = users.map(async (user) => {
         let data = await getTotalMessagesFromUser(user.code, req.params.type);
-        if (userOrdered[user.room]) {
-          userOrdered[user.room].push({ name: user.code, data });
+        if (userSorted[user.room]) {
+          userSorted[user.room].push({ name: user.code, data });
         } else {
-          userOrdered[user.room] = [{ name: user.code, data }];
+          userSorted[user.room] = [{ name: user.code, data }];
         }
       });
       const results = Promise.all(actions);
       results.then(() => {
-        res.send(userOrdered); // Corrected to (no respone in reports)
+        res.send(userSorted); // Corrected to (no respone in reports)
         // res.send(userOrdered); TODO: Corrected from
       });
     } catch (e) {
@@ -828,115 +828,6 @@ async function getTotalMessagesFromUserCsv(userCode, type) {
   }
 }
 
-// async function getPromises(promises) {
-//   let results = [];
-//   for (let i = 0; i < promises.length; i++) {
-//     let smt = await Promise.all(promises[i]);
-//     results[i] = smt;
-//   }
-//   return results;
-// }
-
-// async function getTotalMessagesAllTypesForUser(user, test, exercise) {
-//   try {
-//     const user = await User.findOne({
-//       environment: process.env.NODE_ENV,
-//       code: userCode,
-//     });
-//     if (user) {
-//       const exercisesForEachTest = await getTestsFromSession(user.subject);
-//       let report = {
-//         name: user.code,
-//         data: [],
-//       };
-//       let promises = [];
-//       exercisesForEachTest.map((exercises, test) => {
-//         for (let i = 0; i <= exercises; i++) {
-//           promises.push(getTotalMessages(user.code, test, i));
-//         }
-//       });
-//       const results = await Promise.all(promises);
-//       return results;
-//     } else {
-//       return {};
-//     }
-//   } catch (e) {
-//     console.log(e);
-//   }
-// }
-
-// async function getTotalMessagesNoType(user, test, exercise) {
-//   let results = new Object();
-//   let promises = [];
-//   let matchDeletions = {
-//     environment: process.env.NODE_ENV,
-//     exercise: exercise,
-//     category: "Code",
-//     "payload.change.origin": "+delete",
-//     test: test,
-//     createdBy: user,
-//   }
-//   let matchInputs = {
-//     environment: process.env.NODE_ENV,
-//     category: "Code",
-//     exercise: exercise,
-//     test: test,
-//     "payload.change.origin": "+input",
-//     createdBy: user,
-//   };
-//   let matchMessages = {
-//     environment: process.env.NODE_ENV,
-//     category: "Chat",
-//     exercise: exercise,
-//     test: test,
-//     createdBy: user,
-//   };
-//   let matchWrongs = {
-//     environment: process.env.NODE_ENV,
-//     category: "Verify",
-//     exercise: exercise,
-//     test: test,
-//     payload: false,
-//     createdBy: user,
-//   };
-//   let matchRights = {
-//     environment: process.env.NODE_ENV,
-//     category: "Verify",
-//     exercise: exercise,
-//     test: test,
-//     payload: true,
-//     createdBy: user,
-//   };
-
-//   [matchMessages, matchRights, matchDeletions, matchInputs, matchWrongs].forEach(p => {
-//     promises.push(Log.aggregate([
-//       {
-//         $match: p,
-//       },
-//       {
-//         $group: {
-//           _id: '$category',
-//           totalMessages: {
-//             $sum: 1
-//           },
-//         },
-//       },
-//       {
-//         $project: {
-//           _id: 0,
-//           totalMessages: 1
-//         },
-//       },
-//     ]).then((result) => {
-//       if (result.length == 0) {
-//         results[user] = 0;
-//       } else {
-//         results[user] = result;
-//       }
-//     }));
-//   });
-//   return promises;
-// }
 
 router.get("/dataset/:sessionName", async (req, res) => {
   const adminSecret = req.headers.authorization;
@@ -948,7 +839,7 @@ router.get("/dataset/:sessionName", async (req, res) => {
         environment: process.env.NODE_ENV,
         subject: req.params.sessionName,
       });
-      var userOrdered = [];
+      var userSorted = [];
       let types = ["messages", "rights", "deletions", "inputs", "wrongs"];
       const actions = users.map(async (user) => {
         let data = [];
@@ -956,9 +847,7 @@ router.get("/dataset/:sessionName", async (req, res) => {
           data[types[i]] = await getTotalMessagesFromUserCsv(user.code, types[i]);
         }
 
-
-
-        userOrdered.push({
+        userSorted.push({
           code: user.code,
           mail: user.mail,
           gender: user.gender,
@@ -975,47 +864,19 @@ router.get("/dataset/:sessionName", async (req, res) => {
           data: data,
         });
 
-        // TODO: trying to get all the report from one user
-        // if (userOrdered[user.room]) {
-        //   userOrdered[user.room].push({ name: user.code, session: req.params.sessionName, room: user.room , data });
-        // } else {
-        //   userOrdered[user.room].push({ name: user.code, session: req.params.sessionName, room: user.room , data });
-        // }
       });
 
-      //TODO: terminar implementación adecuada
       const results = Promise.all(actions);
       results.then(() => {
         let dataUsers = [];
-        for (let i = 0; i < userOrdered.length; i++) {
-          dataUsers[i] = userOrdered[i].data;
+        for (let i = 0; i < userSorted.length; i++) {
+          dataUsers[i] = userSorted[i].data;
         }
         let calc = calculateStudentsData(dataUsers);
-        for (let i = 0; i < userOrdered.length; i++) { //student
-          for (let j = 0; j < calc.length; j++) { //tipo
-            let tipo = calc[j];
-            let key = Object.keys(tipo)[0];
-            let value = Object.values(calc[Object.keys(calc)[j]])[0];
-            let values = [];
-            for (let y = 0; y < Object.keys(value).length; y++) {
-              let ky = Object.keys(value)[y];
-              let v = Object.values(value)[y];
-              values.push({ [ky + '-T']: v });
-            }
-            userOrdered[i][key] = userOrdered[i].data[key].concat(values);
-            for (let l=0;l<userOrdered[i][key].length;l++){
-              let m = Object.keys(userOrdered[i][key][l])[0];
-              userOrdered[i][key+m]=Object.values(userOrdered[i][key][l])[0];
-            }
-            delete userOrdered[i][key]
-            // userOrdered[i][key+''] = userOrdered[i].data[key];
-          }
-          delete userOrdered[i].data;
-        }
-        // userOrdered = JSON.stringify(userOrdered);
-        // console.log(userOrdered);
-        res.send(userOrdered);
-        writeCsv(userOrdered);
+        generateDictionary(calc, userSorted);
+
+        res.send(userSorted);
+        writeCsv(userSorted);
       });
     } catch (e) {
       console.log(e);
@@ -1026,26 +887,48 @@ router.get("/dataset/:sessionName", async (req, res) => {
   }
 });
 
+function generateDictionary(data, userSorted) {
+  
+  for (let i = 0; i < userSorted.length; i++) { //loop over students
+    for (let j = 0; j < data.length; j++) { //loop over student types
+      let tipo = data[j]; //gets type
+      let key = Object.keys(tipo)[0];
+      let value = Object.values(data[Object.keys(data)[j]])[0];
+      let values = [];
+      
+      // Save values of type and adds final sum
+      for (let y = 0; y < Object.keys(value).length; y++) {
+        let ky = Object.keys(value)[y];
+        let v = Object.values(value)[y];
+        values.push({ [ky + '-T']: v });
+      }
+      userSorted[i][key] = userSorted[i].data[key].concat(values);
+      for (let l = 0; l < userSorted[i][key].length; l++) {
+        let m = Object.keys(userSorted[i][key][l])[0];
+        userSorted[i][key + m] = Object.values(userSorted[i][key][l])[0];
+      }
+      delete userSorted[i][key];
+    }
+    delete userSorted[i].data;
+  }
+}
+
 function calculateStudentsData(data) {
 
   var keys = [];
-  // var dataAux = [];
-
-
-  var p = Object.values(data[0])[0];
-  for (var j = 0; j < p.length; j++) {
-    keys[j] = Object.keys(p[j])[0];
-    // dataAux[Object.keys(p[j])] = 0;
-  }
-
-  //TODO: SUMA DE LOS DIFERENTES VALORES POR ESTUDIANTE
+  var objects = Object.values(data[0])[0];
   var dataType = [];
   var types = ["messages", "rights", "deletions", "inputs", "wrongs"];
 
-  for (var j = 0; j < types.length; j++) { //Recorremos los tipos de cada log
+  for (var j = 0; j < objects.length; j++) {
+    keys[j] = Object.keys(objects[j])[0];
+  }
+
+  for (var k = 0; k < types.length; k++) { //Loop over type logs
     var dataFinal = [];
-    var type = types[j]; //type
-    //Por cada tipo llamamos al caluclo por ejercicio de cada test (de los estudiantes de la sesion)
+    var type = types[k]; //type
+
+    //For each type we call the exercise calculus of each test (for the students in the session)
     const result = dataStudents(data, type, keys);
 
     var obj = { [type]: result };
@@ -1063,9 +946,9 @@ function dataStudents(data, type, keys) {
     result[Object.keys(p[j])] = 0;
   }
 
-  for (var i = 0; i < data.length; i++) { //Recorremos estudiantes
+  for (var i = 0; i < data.length; i++) { //Loop over students
     // Structure to save the values of each type
-    for (var k = 0; k < keys.length; k++) { //Recorremos los mensajes de cada estudiante
+    for (var k = 0; k < keys.length; k++) { //Loop over student metrics
       var key = keys[k]; //key 1-1
       var values = Object.values(data[i][type]); //Values of the student i and type
       result[key] += values[k][key];
@@ -1074,27 +957,27 @@ function dataStudents(data, type, keys) {
   return result;
 }
 
-function writeCsv(userOrdered) {
+function writeCsv(userSorted) {
 
-  var keys = Object.keys(userOrdered[0]);
+  var keys = Object.keys(userSorted[0]);
   var header = [];
-  for(let n=0;n<keys.length;n++){
+  for (let n = 0; n < keys.length; n++) {
     header.push({
-      id : keys[n],
-      title : keys[n].toUpperCase()
+      id: keys[n],
+      title: keys[n].toUpperCase()
     });
   }
   // Passing the column names intp the module
   const csvWriter = createCsvWriter({
-  
+
     // Output csv file name is geek_data
     path: 'data.csv',
     header: header
   });
 
-  // Writerecords function to add records
+  // Write records function to add records
   csvWriter
-    .writeRecords(userOrdered)
+    .writeRecords(userSorted)
     .then(() => console.log('Data uploaded into csv successfully'));
 
 
