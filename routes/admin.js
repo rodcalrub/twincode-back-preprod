@@ -888,14 +888,14 @@ router.get("/dataset/:sessionName", async (req, res) => {
 });
 
 function generateDictionary(data, userSorted) {
-  
+
   for (let i = 0; i < userSorted.length; i++) { //loop over students
     for (let j = 0; j < data.length; j++) { //loop over student types
       let tipo = data[j]; //gets type
       let key = Object.keys(tipo)[0];
       let value = Object.values(data[Object.keys(data)[j]])[0];
       let values = [];
-      
+
       // Save values of type and adds final sum
       for (let y = 0; y < Object.keys(value).length; y++) {
         let ky = Object.keys(value)[y];
@@ -957,7 +957,7 @@ function dataStudents(data, type, keys) {
   return result;
 }
 
-function writeCsv(userSorted) {
+function writeCsv(userSorted, path = '') {
 
   var keys = Object.keys(userSorted[0]);
   var header = [];
@@ -971,14 +971,97 @@ function writeCsv(userSorted) {
   const csvWriter = createCsvWriter({
 
     // Output csv file name is geek_data
-    path: 'data.csv',
+    path: path + 'data.csv',
     header: header
   });
+
+  console.log(path);
 
   // Write records function to add records
   csvWriter
     .writeRecords(userSorted)
     .then(() => console.log('Data uploaded into csv successfully'));
 
-
+  return csvWriter;
 }
+
+
+
+router.get("/analyze/:sessionName", async (req, res) => {
+  const adminSecret = req.headers.authorization;
+
+  if (adminSecret === process.env.ADMIN_SECRET) {
+    try {
+      console.log("Retrieving reports in csv");
+      const users = await User.find({
+        environment: process.env.NODE_ENV,
+        subject: req.params.sessionName,
+      });
+      var userSorted = [];
+      let types = ["messages", "rights", "deletions", "inputs", "wrongs"];
+      const actions = users.map(async (user) => {
+        let data = [];
+        for (var i = 0; i < types.length; i++) {
+          data[types[i]] = await getTotalMessagesFromUserCsv(user.code, types[i]);
+        }
+
+        userSorted.push({
+          code: user.code,
+          mail: user.mail,
+          gender: user.gender,
+          birthDate: user.birthDate,
+          subject: req.params.sessionName,
+          beganStudying: user.beganStudying,
+          numberOfSubjects: user.numberOfSubjects,
+          knownLanguages: user.knownLanguages,
+          signedUpOn: user.signedUpOn,
+          token: user.token,
+          room: user.room,
+          blind: user.blind,
+          jsexp: user.jsexp,
+          data: data,
+        });
+
+      });
+
+      const results = Promise.all(actions);
+      results.then(() => {
+        let dataUsers = [];
+        for (let i = 0; i < userSorted.length; i++) {
+          dataUsers[i] = userSorted[i].data;
+        }
+        let calc = calculateStudentsData(dataUsers);
+        generateDictionary(calc, userSorted);
+
+        res.send(userSorted);
+        writeCsv(userSorted, '/tmp/');
+
+        //Lanzar script de R que lea csv
+        var out = R("ex-sync.R")
+          .data("hello world", 20)
+          .callSync();
+          
+        console.log(out);
+
+        //Leer csv
+        // const fs = require('fs');
+        // const csv = require('csv-parser');
+
+        // fs.createReadStream("/tmp/data.csv")
+        //   .pipe(csv())
+        //   .on('data', (row) => {
+        //     console.log(row);
+        //   })
+        //   .on('end', () => {
+        //     console.log('CSV file successfully processed');
+        //   });
+
+      });
+    } catch (e) {
+      console.log(e);
+      res.sendStatus(500);
+    }
+  } else {
+    res.sendStatus(401);
+  }
+});
