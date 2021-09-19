@@ -8,10 +8,17 @@ const User = require("../models/User.js");
 const Session = require("../models/Session.js");
 const Log = require("../models/Log.js");
 const consumer = require("../consumer.js");
-// Import csv-writer
+
 const csvwriter = require('csv-writer');
+// const R  = require('r-script')
+const R = require('r-integration');
+const fs = require('fs');
+const multer = require('multer');
+const upload = multer({ dest: 'tmp/' });
+const csv = require('fast-csv');
 
 var createCsvWriter = csvwriter.createObjectCsvWriter
+
 /**
  * SESSIONS
  */
@@ -80,7 +87,7 @@ router.get("/sessions/:sessionName", (req, res) => {
   console.log("ENTORNO DE NODE: " + process.env.NODE_ENV);
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
-      Session.findOne({
+    Session.findOne({
         environment: process.env.NODE_ENV,
         name: req.params.sessionName,
       })
@@ -956,8 +963,7 @@ function dataStudents(data, type, keys) {
   }
   return result;
 }
-
-function writeCsv(userSorted, path = '') {
+async function writeCsv(userSorted, path = '') {
 
   var keys = Object.keys(userSorted[0]);
   var header = [];
@@ -975,17 +981,24 @@ function writeCsv(userSorted, path = '') {
     header: header
   });
 
-  console.log(path);
-
-  // Write records function to add records
-  csvWriter
+  //If path not empty -> we write the csv and run Rscript
+  if(path){
+    return await csvWriter
+      .writeRecords(userSorted)
+      .then(() => {
+        console.log("Uploaded CSV into server "+path);
+        let result = R.executeRScript("./scripts/test.R");
+        //TODO: transformar result a JSON para el write
+        console.log(result);
+        writeCsv(userSorted);
+      });
+  }else{ //if empty just write and return path
+    csvWriter
     .writeRecords(userSorted)
     .then(() => console.log('Data uploaded into csv successfully'));
-
-  return csvWriter;
+    return path + 'data.csv';
+  }
 }
-
-
 
 router.get("/analyze/:sessionName", async (req, res) => {
   const adminSecret = req.headers.authorization;
@@ -1033,15 +1046,28 @@ router.get("/analyze/:sessionName", async (req, res) => {
         let calc = calculateStudentsData(dataUsers);
         generateDictionary(calc, userSorted);
 
-        res.send(userSorted);
-        writeCsv(userSorted, '/tmp/');
+        // res.send(userSorted);
+        if (!fs.existsSync('./tmp')){
+          fs.mkdirSync('./tmp');
+        }
 
-        //Lanzar script de R que lea csv
-        var out = R("ex-sync.R")
-          .data("hello world", 20)
-          .callSync();
-          
-        console.log(out);
+        //Save CSV into server
+        writeCsv(userSorted, 'tmp/').then((result)=>{
+          res.send(result);
+        });
+        
+        // console.log("Deleting CSV file");
+        // try {
+        //   fs.unlinkSync(path)
+        //   //file removed
+        // }catch(err) {
+        //   console.error(err)
+        // }
+        
+      });
+        
+
+        // console.log(out);
 
         //Leer csv
         // const fs = require('fs');
@@ -1056,7 +1082,6 @@ router.get("/analyze/:sessionName", async (req, res) => {
         //     console.log('CSV file successfully processed');
         //   });
 
-      });
     } catch (e) {
       console.log(e);
       res.sendStatus(500);
