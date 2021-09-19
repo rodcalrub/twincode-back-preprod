@@ -1,0 +1,89 @@
+---
+title: "Data"
+output: html_document
+self_contained: no
+---
+```{r}
+# install.packages("tidyverse")
+# install.packages("htmlwidgets")
+# install.packages("plotly")
+# install.packages("ggplot2")
+# install.packages("png")
+```
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(htmlwidgets)
+library(png)
+```
+# Reading user data CSV
+```{r}
+data <- read.csv(file = 'data.csv', stringsAsFactors = FALSE)
+```
+# Example sorting data by user ID code -> chanfe decreasing to check results
+```{r}
+dataFinal <- data[order(data[, "CODE"]), , drop = FALSE]
+df <- data.frame(id=dataFinal$CODE,messagesone=dataFinal$MESSAGES1.1,messagestwo=dataFinal$MESSAGES2.1, gender=dataFinal$GENDER)
+```
+# Writing user data in final CSV
+# write.csv(dataFinal, file = './tmp/dataAfter.csv')
+```{r}
+dataNew <- dataFinal$MESSAGES1.1
+dataNames <- c(dataFinal$CODE)
+
+x= c(dataNames)
+y= c(dataNew)
+
+barplot(y, mainlab= "main", xlab= "MESSAGES1-1", ylab= "NUMBER",
+        names.arg= x)
+```
+```{r}
+dataNew <- dataFinal$MESSAGES2.1
+dataNames <- c(dataFinal$CODE)
+
+x= c(dataNames)
+y= c(dataNew)
+
+barplot(y, mainlab= "main", xlab= "MESSAGES2-1", ylab= "NUMBER",
+        names.arg= x)
+```
+```{r}
+dataNew <- dataFinal$RIGHTS1.1
+dataNames <- c(dataFinal$CODE)
+
+x= c(dataNames)
+y= c(dataNew)
+
+barplot(y, mainlab= "main", xlab= "RIGHTS1.1", ylab= "NUMBER",
+        names.arg= x)
+```
+```{r}
+dataNew <- dataFinal$RIGHTS2.1
+dataNames <- c(dataFinal$CODE)
+
+x= c(dataNames)
+y= c(dataNew)
+
+barplot(y, mainlab= "main", xlab= "RIGHTS1.1", ylab= "NUMBER",
+        names.arg= x)
+```
+## ggplot
+# Messages for first sesion
+```{r}
+ggplot(data=df) +
+  geom_bar(aes(x=as.factor(id), y=as.factor(messagesone)),
+    stat = 'identity',
+    width = 0.3,
+    fill='tomato2')  +
+  theme_classic()
+ggsave("./images/gg1.png")
+```
+# Number of genders
+```{r}
+ggplot(data=df) +
+  geom_bar(aes(x=gender)) +
+  scale_fill_hue(c = 40) +
+  theme(legend.position="none")
+ggsave("./images/gg2.png")
+```

@@ -1,0 +1,1 @@
+rmarkdown::render('./test.Rmd', output_file = "smt.html")
