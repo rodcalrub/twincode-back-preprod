@@ -16,6 +16,12 @@ const fs = require('fs');
 const multer = require('multer');
 const upload = multer({ dest: 'tmp/' });
 const csv = require('fast-csv');
+const csvjson = require('csvjson');
+const CSVTOJSON = require('csvtojson');
+const readFile = require('fs').readFile;
+const path = require('path');
+
+
 
 var createCsvWriter = csvwriter.createObjectCsvWriter
 
@@ -87,7 +93,7 @@ router.get("/sessions/:sessionName", (req, res) => {
   console.log("ENTORNO DE NODE: " + process.env.NODE_ENV);
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
-    Session.findOne({
+      Session.findOne({
         environment: process.env.NODE_ENV,
         name: req.params.sessionName,
       })
@@ -982,20 +988,19 @@ async function writeCsv(userSorted, path = '') {
   });
 
   //If path not empty -> we write the csv and run Rscript
-  if(path){
-    return await csvWriter
+  if (path) {
+    csvWriter
       .writeRecords(userSorted)
       .then(() => {
-        console.log("Uploaded CSV into server "+path);
-        let result = R.executeRScript("./scripts/test.R");
-        //TODO: transformar result a JSON para el write
-        console.log(result);
+        console.log("Uploaded CSV into server " + path);
+        R.executeRScript("./scripts/test.R");
+        // console.log(result);
         writeCsv(userSorted);
       });
-  }else{ //if empty just write and return path
+  } else { //if empty just write and return path
     csvWriter
-    .writeRecords(userSorted)
-    .then(() => console.log('Data uploaded into csv successfully'));
+      .writeRecords(userSorted)
+      .then(() => console.log('Data uploaded into csv successfully'));
     return path + 'data.csv';
   }
 }
@@ -1047,40 +1052,55 @@ router.get("/analyze/:sessionName", async (req, res) => {
         generateDictionary(calc, userSorted);
 
         // res.send(userSorted);
-        if (!fs.existsSync('./tmp')){
+        if (!fs.existsSync('./tmp')) {
           fs.mkdirSync('./tmp');
         }
 
         //Save CSV into server
-        writeCsv(userSorted, 'tmp/').then((result)=>{
-          res.send(result);
-        });
-        
-        // console.log("Deleting CSV file");
-        // try {
-        //   fs.unlinkSync(path)
-        //   //file removed
-        // }catch(err) {
-        //   console.error(err)
-        // }
-        
+        writeCsv(userSorted, 'tmp/')
+          .then(() => {
+            readFile('./tmp/data.csv', 'utf-8', (err, fileContent) => {
+              if (err) {
+                console.log(err);
+                throw new Error(err);
+              }
+              const jsonObj = csvjson.toObject(fileContent);
+
+              res.send(jsonObj);
+
+              console.log("Deleting CSV files");
+              fs.readdir('./tmp', (err, files) => {
+                if (err) throw err;
+
+                for (const file of files) {
+                  fs.unlink(path.join('./tmp', file), err => {
+                    if (err) throw err;
+                  });
+                }
+              });
+            });
+          });
+
+
+
+
       });
-        
 
-        // console.log(out);
 
-        //Leer csv
-        // const fs = require('fs');
-        // const csv = require('csv-parser');
+      // console.log(out);
 
-        // fs.createReadStream("/tmp/data.csv")
-        //   .pipe(csv())
-        //   .on('data', (row) => {
-        //     console.log(row);
-        //   })
-        //   .on('end', () => {
-        //     console.log('CSV file successfully processed');
-        //   });
+      //Leer csv
+      // const fs = require('fs');
+      // const csv = require('csv-parser');
+
+      // fs.createReadStream("/tmp/data.csv")
+      //   .pipe(csv())
+      //   .on('data', (row) => {
+      //     console.log(row);
+      //   })
+      //   .on('end', () => {
+      //     console.log('CSV file successfully processed');
+      //   });
 
     } catch (e) {
       console.log(e);

@@ -1,11 +1,10 @@
-#We get all CSV files from the tmp directory
-theFiles <- list.files("./tmp/",pattern="data.csv",full.names = TRUE)
-# theFiles
+# Reading user data CSV
+data <- read.csv(file = './tmp/data.csv', stringsAsFactors = FALSE)
 
-dataList <- lapply(theFiles,read.csv,stringsAsFactors=FALSE)
-# dataList
-head(dataList[[1]])
-# list.files(path = "./tmp/", full.names = TRUE)
+# Example sorting data by user ID code -> chanfe decreasing to check results
+dataFinal <- data[order(data[, "CODE"]), , drop = FALSE, decreasing = FALSE]
 
+# Writing user data in final CSV
+write.csv(dataFinal, file = './tmp/dataAfter.csv')
 
-
+print("Finished running R script")
