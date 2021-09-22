@@ -1,5 +1,6 @@
 ---
-title: "Data"
+title: "Analysis Result"
+author: "Rodrigo Calvo Rubio"
 output: html_document
 self_contained: no
 ---
@@ -10,80 +11,109 @@ self_contained: no
 # install.packages("ggplot2")
 # install.packages("png")
 ```
-```{r}
+```{r Import-Libraries}
+.libPaths('D:/R-4.1.1/library')
+
 library(tidyverse)
 library(ggplot2)
 library(plotly)
 library(htmlwidgets)
 library(png)
+
 ```
 # Reading user data CSV
-```{r}
-data <- read.csv(file = 'data.csv', stringsAsFactors = FALSE)
+```{r Get-Data-From-CSV}
+data <- read.csv(file = './dataset.csv', stringsAsFactors = FALSE)
 ```
 # Example sorting data by user ID code -> chanfe decreasing to check results
-```{r}
+```{r Sort-Data-And-Save-CSV}
 dataFinal <- data[order(data[, "CODE"]), , drop = FALSE]
-df <- data.frame(id=dataFinal$CODE,messagesone=dataFinal$MESSAGES1.1,messagestwo=dataFinal$MESSAGES2.1, gender=dataFinal$GENDER)
+df <- data.frame(dataFinal)
+write.csv(df, file = '../tmp/result.csv')
 ```
 # Writing user data in final CSV
-# write.csv(dataFinal, file = './tmp/dataAfter.csv')
-```{r}
-dataNew <- dataFinal$MESSAGES1.1
-dataNames <- c(dataFinal$CODE)
+# Loop over the messages sent in different exercises
+```{r Messages-plot}
+messages <- df %>%
+        select(matches('MESSAGES[1-9].[1-9]$'))
 
-x= c(dataNames)
-y= c(dataNew)
+exercise <- ''
+for (i in seq_along(messages)) {
+        exerciseName <- gsub("\\.","-",names(messages)[i])
+        print(paste(exerciseName, messages[i]))
+        exercise <-c(df[names(messages)[i]])
+        value <- unlist(exercise[1], use.names=FALSE)
+        file <- paste(exerciseName,".png", sep="")
+        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+         geom_bar(stat="identity")
+        ggsave(paste("./plots/analysis_",file, sep=""))
+        # ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+        #  geom_bar(stat="identity")
+        # ggsave(paste("./plots/messages/analysis_",file, sep=""))
+}
 
-barplot(y, mainlab= "main", xlab= "MESSAGES1-1", ylab= "NUMBER",
-        names.arg= x)
 ```
-```{r}
-dataNew <- dataFinal$MESSAGES2.1
-dataNames <- c(dataFinal$CODE)
+```{r Rights-Plot}
+rights <- df %>%
+        select(matches('RIGHTS[1-9].[1-9]$'))
 
-x= c(dataNames)
-y= c(dataNew)
-
-barplot(y, mainlab= "main", xlab= "MESSAGES2-1", ylab= "NUMBER",
-        names.arg= x)
+exercise <- ''
+for (i in seq_along(rights)) {
+        exerciseName <- gsub("\\.","-",names(rights)[i])
+        print(paste(exerciseName, rights[i]))
+        exercise <-c(df[names(rights)[i]])
+        value <- unlist(exercise[1], use.names=FALSE)
+        file <- paste(exerciseName,".png", sep="")
+        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+                geom_bar(stat="identity")
+        ggsave(paste("./plots/analysis_",file, sep=""))
+}
 ```
-```{r}
-dataNew <- dataFinal$RIGHTS1.1
-dataNames <- c(dataFinal$CODE)
+```{r Deletions-Plot}
+deletions <- df %>%
+        select(matches('DELETIONS[1-9].[1-9]$'))
 
-x= c(dataNames)
-y= c(dataNew)
-
-barplot(y, mainlab= "main", xlab= "RIGHTS1.1", ylab= "NUMBER",
-        names.arg= x)
+exercise <- ''
+for (i in seq_along(deletions)) {
+        exerciseName <- gsub("\\.","-",names(deletions)[i])
+        print(paste(exerciseName, deletions[i]))
+        exercise <-c(df[names(deletions)[i]])
+        value <- unlist(exercise[1], use.names=FALSE)
+        file <- paste(exerciseName,".png", sep="")
+        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+                geom_bar(stat="identity")
+        ggsave(paste("./plots/analysis_",file, sep=""))
+}
 ```
-```{r}
-dataNew <- dataFinal$RIGHTS2.1
-dataNames <- c(dataFinal$CODE)
+```{r Inputs-Plot}
+inputs <- df %>%
+        select(matches('INPUTS[1-9].[1-9]$'))
 
-x= c(dataNames)
-y= c(dataNew)
+exercise <- ''
+for (i in seq_along(inputs)) {
+        exerciseName <- gsub("\\.","-",names(inputs)[i])
+        print(paste(exerciseName, inputs[i]))
+        exercise <-c(df[names(inputs)[i]])
+        value <- unlist(exercise[1], use.names=FALSE)
+        file <- paste(exerciseName,".png", sep="")
+        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+                geom_bar(stat="identity")
+        ggsave(paste("./plots/analysis_",file, sep=""))
+}
+```
+```{r Wrongs-Plot}
+wrongs <- df %>%
+        select(matches('WRONGS[1-9].[1-9]$'))
 
-barplot(y, mainlab= "main", xlab= "RIGHTS1.1", ylab= "NUMBER",
-        names.arg= x)
-```
-## ggplot
-# Messages for first sesion
-```{r}
-ggplot(data=df) +
-  geom_bar(aes(x=as.factor(id), y=as.factor(messagesone)),
-    stat = 'identity',
-    width = 0.3,
-    fill='tomato2')  +
-  theme_classic()
-ggsave("./images/gg1.png")
-```
-# Number of genders
-```{r}
-ggplot(data=df) +
-  geom_bar(aes(x=gender)) +
-  scale_fill_hue(c = 40) +
-  theme(legend.position="none")
-ggsave("./images/gg2.png")
+exercise <- ''
+for (i in seq_along(wrongs)) {
+        exerciseName <- gsub("\\.","-",names(wrongs)[i])
+        print(paste(exerciseName, wrongs[i]))
+        exercise <-c(df[names(wrongs)[i]])
+        value <- unlist(exercise[1], use.names=FALSE)
+        file <- paste(exerciseName,".png", sep="")
+        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+                geom_bar(stat="identity")
+        ggsave(paste("./plots/analysis_",file, sep=""))
+}
 ```

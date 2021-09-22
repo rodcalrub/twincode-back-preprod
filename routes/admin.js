@@ -21,8 +21,6 @@ const CSVTOJSON = require('csvtojson');
 const readFile = require('fs').readFile;
 const path = require('path');
 
-
-
 var createCsvWriter = csvwriter.createObjectCsvWriter
 
 /**
@@ -983,7 +981,7 @@ async function writeCsv(userSorted, path = '') {
   const csvWriter = createCsvWriter({
 
     // Output csv file name is geek_data
-    path: path + 'data.csv',
+    path: path + 'dataset.csv',
     header: header
   });
 
@@ -993,7 +991,7 @@ async function writeCsv(userSorted, path = '') {
       .writeRecords(userSorted)
       .then(() => {
         console.log("Uploaded CSV into server " + path);
-        R.executeRScript("./scripts/test.R");
+        R.executeRScript("./scripts/test2.r");
         // console.log(result);
         writeCsv(userSorted);
       });
@@ -1001,7 +999,7 @@ async function writeCsv(userSorted, path = '') {
     csvWriter
       .writeRecords(userSorted)
       .then(() => console.log('Data uploaded into csv successfully'));
-    return path + 'data.csv';
+    return path + 'dataset.csv';
   }
 }
 
@@ -1059,7 +1057,8 @@ router.get("/analyze/:sessionName", async (req, res) => {
         //Save CSV into server
         writeCsv(userSorted, 'tmp/')
           .then(() => {
-            readFile('./tmp/data.csv', 'utf-8', (err, fileContent) => {
+            R.executeRScript("./scripts/test.r");
+            readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
               if (err) {
                 console.log(err);
                 throw new Error(err);
@@ -1092,6 +1091,22 @@ router.get("/analyze/:sessionName", async (req, res) => {
   }
 });
 
+
+function execShellCommand(cmd) {
+  const exec = require("child_process").exec;
+  return new Promise((resolve, reject) => {
+    exec(cmd, { maxBuffer: 1024 * 500 }, (error, stdout, stderr) => {
+      if (error) {
+        console.warn(error);
+      } else if (stdout) {
+        console.log(stdout); 
+      } else {
+        console.log(stderr);
+      }
+      resolve(stdout ? true : false);
+    });
+  });
+}
 
 router.get("/analyze/:sessionName/show", async (req, res) => {
   const adminSecret = req.headers.authorization;
@@ -1127,7 +1142,6 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
           jsexp: user.jsexp,
           data: data,
         });
-
       });
 
       const results = Promise.all(actions);
@@ -1143,31 +1157,30 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
         if (!fs.existsSync('./tmp')) {
           fs.mkdirSync('./tmp');
         }
-
         //Save CSV into server
         writeCsv(userSorted, 'tmp/')
-          .then(() => {
-            readFile('./tmp/data.csv', 'utf-8', (err, fileContent) => {
-              if (err) {
-                console.log(err);
-                throw new Error(err);
+        .then(() => {
+          R.executeRScript('./scripts/render.r');
+          readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
+            if (err) {
+              console.log(err);
+              throw new Error(err);
+            }
+            const jsonObj = csvjson.toObject(fileContent);
+            res.send(jsonObj);
+
+            console.log("Deleting CSV files");
+            fs.readdir('./tmp', (err, files) => {
+              if (err) throw err;
+
+              for (const file of files) {
+                fs.unlink(path.join('./tmp', file), err => {
+                  if (err) throw err;
+                });
               }
-              const jsonObj = csvjson.toObject(fileContent);
-
-              res.send(jsonObj);
-
-              console.log("Deleting CSV files");
-              fs.readdir('./tmp', (err, files) => {
-                if (err) throw err;
-
-                for (const file of files) {
-                  fs.unlink(path.join('./tmp', file), err => {
-                    if (err) throw err;
-                  });
-                }
-              });
             });
           });
+        });
       });
 
     } catch (e) {
