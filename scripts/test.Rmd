@@ -10,9 +10,11 @@ self_contained: no
 # install.packages("plotly")
 # install.packages("ggplot2")
 # install.packages("png")
+print(.libPaths())
 ```
 ```{r Import-Libraries}
-.libPaths('D:/R-4.1.1/library')
+# .libPaths('D:/R-4.1.1/library')
+# .library('/Library/Frameworks/R.framework/Versions/4.1/Resources/library')
 
 library(tidyverse)
 library(ggplot2)

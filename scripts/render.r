@@ -1,2 +1,2 @@
-print(.libPaths('D:/R-4.1.1/library'))
+print(.libPaths())
 rmarkdown::render('./scripts/test.Rmd', output_file = "result.html")
