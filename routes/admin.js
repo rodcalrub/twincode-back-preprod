@@ -991,8 +991,6 @@ async function writeCsv(userSorted, path = '') {
       .writeRecords(userSorted)
       .then(() => {
         console.log("Uploaded CSV into server " + path);
-        R.executeRScript("./scripts/test2.r");
-        // console.log(result);
         writeCsv(userSorted);
       });
   } else { //if empty just write and return path
@@ -1157,10 +1155,16 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
         if (!fs.existsSync('./tmp')) {
           fs.mkdirSync('./tmp');
         }
+        if (!fs.existsSync('./scripts/analysis/')) {
+          fs.mkdirSync('./scripts/analysis/');
+        }
+        if (!fs.existsSync('./scripts/analysis/'+ req.params.sessionName)) {
+          fs.mkdirSync('./scripts/analysis/'+ req.params.sessionName);
+        }
         //Save CSV into server
         writeCsv(userSorted, 'tmp/')
         .then(() => {
-          R.executeRScript('./scripts/render.r');
+          R.executeRScript(req.params.sessionName,'./scripts/render.r');
           readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
             if (err) {
               console.log(err);

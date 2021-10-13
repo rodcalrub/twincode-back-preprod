@@ -3,6 +3,8 @@ title: "Analysis Result"
 author: "Rodrigo Calvo Rubio"
 output: html_document
 self_contained: no
+params:
+        session: ''
 ---
 ```{r}
 # install.packages("tidyverse")
@@ -25,7 +27,7 @@ library(png)
 ```
 # Reading user data CSV
 ```{r Get-Data-From-CSV}
-data <- read.csv(file = './dataset.csv', stringsAsFactors = FALSE)
+data <- read.csv(file = "./analysis/"+params$session+"/dataset.csv", stringsAsFactors = FALSE)
 ```
 # Example sorting data by user ID code -> chanfe decreasing to check results
 ```{r Sort-Data-And-Save-CSV}
@@ -48,7 +50,7 @@ for (i in seq_along(messages)) {
         file <- paste(exerciseName,".png", sep="")
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
          geom_bar(stat="identity")
-        ggsave(paste("./plots/analysis_",file, sep=""))
+        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
         # ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
         #  geom_bar(stat="identity")
         # ggsave(paste("./plots/messages/analysis_",file, sep=""))
@@ -68,7 +70,7 @@ for (i in seq_along(rights)) {
         file <- paste(exerciseName,".png", sep="")
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./plots/analysis_",file, sep=""))
+        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
 ```{r Deletions-Plot}
@@ -84,7 +86,7 @@ for (i in seq_along(deletions)) {
         file <- paste(exerciseName,".png", sep="")
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./plots/analysis_",file, sep=""))
+        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
 ```{r Inputs-Plot}
@@ -100,7 +102,7 @@ for (i in seq_along(inputs)) {
         file <- paste(exerciseName,".png", sep="")
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./plots/analysis_",file, sep=""))
+        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
 ```{r Wrongs-Plot}
@@ -116,6 +118,6 @@ for (i in seq_along(wrongs)) {
         file <- paste(exerciseName,".png", sep="")
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./plots/analysis_",file, sep=""))
+        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
