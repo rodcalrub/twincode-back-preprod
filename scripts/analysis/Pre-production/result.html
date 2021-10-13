@@ -412,7 +412,8 @@ library(plotly)</code></pre>
 <pre><code>## Warning: package &#39;png&#39; was built under R version 4.1.1</code></pre>
 <div id="reading-user-data-csv" class="section level1">
 <h1>Reading user data CSV</h1>
-<pre class="r"><code>data &lt;- read.csv(file = &#39;./dataset.csv&#39;, stringsAsFactors = FALSE)</code></pre>
+<pre class="r"><code>path &lt;- paste(&quot;./analysis/&quot;,params$session,&quot;/dataset.csv&quot;,sep=&quot;&quot;)
+data &lt;- read.csv(file = path, stringsAsFactors = FALSE)</code></pre>
 </div>
 <div id="example-sorting-data-by-user-id-code---chanfe-decreasing-to-check-results" class="section level1">
 <h1>Example sorting data by user ID code -&gt; chanfe decreasing to check results</h1>
@@ -460,7 +461,7 @@ for (i in seq_along(rights)) {
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat=&quot;identity&quot;)
-        ggsave(paste(&quot;./plots/analysis_&quot;,file, sep=&quot;&quot;))
+        ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;RIGHTS1-1 c(0, 8)&quot;</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
@@ -480,7 +481,7 @@ for (i in seq_along(deletions)) {
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat=&quot;identity&quot;)
-        ggsave(paste(&quot;./plots/analysis_&quot;,file, sep=&quot;&quot;))
+        ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;DELETIONS1-1 c(3, 54)&quot;</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
@@ -500,7 +501,7 @@ for (i in seq_along(inputs)) {
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat=&quot;identity&quot;)
-        ggsave(paste(&quot;./plots/analysis_&quot;,file, sep=&quot;&quot;))
+        ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;INPUTS1-1 c(37, 408)&quot;</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
@@ -520,7 +521,7 @@ for (i in seq_along(wrongs)) {
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat=&quot;identity&quot;)
-        ggsave(paste(&quot;./plots/analysis_&quot;,file, sep=&quot;&quot;))
+        ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;WRONGS1-1 c(2, 19)&quot;</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>

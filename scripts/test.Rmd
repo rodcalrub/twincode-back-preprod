@@ -27,7 +27,8 @@ library(png)
 ```
 # Reading user data CSV
 ```{r Get-Data-From-CSV}
-data <- read.csv(file = "./analysis/"+params$session+"/dataset.csv", stringsAsFactors = FALSE)
+path <- paste("./analysis/",params$session,"/dataset.csv",sep="")
+data <- read.csv(file = path, stringsAsFactors = FALSE)
 ```
 # Example sorting data by user ID code -> chanfe decreasing to check results
 ```{r Sort-Data-And-Save-CSV}
