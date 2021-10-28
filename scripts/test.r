@@ -1,3 +1,4 @@
+.libPaths('D:/R-4.1.1/library')
 data <- read.csv(file = './scripts/dataset.csv', stringsAsFactors = FALSE)
 # # Example sorting data by user ID code -> chanfe decreasing to check results
 dataFinal <- data[order(data[, "CODE"]), , drop = FALSE]

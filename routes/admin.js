@@ -332,7 +332,7 @@ router.put("/sessions/:sessionName", (req, res) => {
 
 router.post("/tests", (req, res) => {
   const adminSecret = req.headers.authorization;
-
+  
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
       let newTest = new Test();
@@ -979,26 +979,25 @@ async function writeCsv(userSorted, path = '') {
   }
   // Passing the column names intp the module
   const csvWriter = createCsvWriter({
-
     // Output csv file name is geek_data
     path: path + 'dataset.csv',
     header: header
   });
 
   //If path not empty -> we write the csv and run Rscript
-  if (path) {
-    csvWriter
-      .writeRecords(userSorted)
-      .then(() => {
-        console.log("Uploaded CSV into server " + path);
-        writeCsv(userSorted);
-      });
-  } else { //if empty just write and return path
+  // if (path) {
+  //   csvWriter
+  //     .writeRecords(userSorted)
+  //     .then(() => {
+  //       console.log("Uploaded CSV into server " + path);
+  //       writeCsv(userSorted);
+  //     });
+  // } else { //if empty just write and return path
     csvWriter
       .writeRecords(userSorted)
       .then(() => console.log('Data uploaded into csv successfully'));
     return path + 'dataset.csv';
-  }
+  // }
 }
 
 router.get("/analyze/:sessionName", async (req, res) => {
@@ -1162,28 +1161,28 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
           fs.mkdirSync('./scripts/analysis/'+ req.params.sessionName);
         }
         //Save CSV into server
-        writeCsv(userSorted, 'tmp/')
+        writeCsv(userSorted, './scripts/analysis/'+req.params.sessionName+'/')
         .then(() => {
           R.executeRScript(req.params.sessionName,'./scripts/render.r');
-          readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
-            if (err) {
-              console.log(err);
-              throw new Error(err);
-            }
-            const jsonObj = csvjson.toObject(fileContent);
-            res.send(jsonObj);
+          // readFile('./scripts/analysis/'+req.params.sessionName+'/result.csv', 'utf-8', (err, fileContent) => {
+          //   if (err) {
+          //     console.log(err);
+          //     throw new Error(err);
+          //   }
+          //   const jsonObj = csvjson.toObject(fileContent);
+          //   res.send(jsonObj);
 
-            console.log("Deleting CSV files");
-            fs.readdir('./tmp', (err, files) => {
-              if (err) throw err;
+          //   console.log("Deleting CSV files");
+          //   fs.readdir('./tmp', (err, files) => {
+          //     if (err) throw err;
 
-              for (const file of files) {
-                fs.unlink(path.join('./tmp', file), err => {
-                  if (err) throw err;
-                });
-              }
-            });
-          });
+          //     for (const file of files) {
+          //       fs.unlink(path.join('./tmp', file), err => {
+          //         if (err) throw err;
+          //       });
+          //     }
+          //   });
+          // });
         });
       });
 
