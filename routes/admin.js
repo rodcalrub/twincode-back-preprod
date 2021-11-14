@@ -146,10 +146,6 @@ router.get("/sessions/:sessionName/:type", async (req, res) => {
         subject: req.params.sessionName,
       });
       let userSorted = [];
-      // const rooms = await Room.find({
-      //   environment: process.env.NODE_ENV,
-      //   session: req.params.sessionName,
-      // })
       const actions = users.map(async (user) => {
         let data = await getTotalMessagesFromUser(user.code, req.params.type);
         if (userSorted[user.room]) {
@@ -1005,93 +1001,93 @@ async function writeCsv(userSorted, path = '') {
   // }
 }
 
-router.get("/analyze/:sessionName", async (req, res) => {
-  const adminSecret = req.headers.authorization;
+// router.get("/analyze/:sessionName", async (req, res) => {
+//   const adminSecret = req.headers.authorization;
 
-  if (adminSecret === process.env.ADMIN_SECRET) {
-    try {
-      console.log("Retrieving reports in csv");
-      const users = await User.find({
-        environment: process.env.NODE_ENV,
-        subject: req.params.sessionName,
-      });
-      var userSorted = [];
-      let types = ["messages", "rights", "deletions", "inputs", "wrongs"];
-      const actions = users.map(async (user) => {
-        let data = [];
-        for (var i = 0; i < types.length; i++) {
-          data[types[i]] = await getTotalMessagesFromUserCsv(user.code, types[i]);
-        }
+//   if (adminSecret === process.env.ADMIN_SECRET) {
+//     try {
+//       console.log("Retrieving reports in csv");
+//       const users = await User.find({
+//         environment: process.env.NODE_ENV,
+//         subject: req.params.sessionName,
+//       });
+//       var userSorted = [];
+//       let types = ["messages", "rights", "deletions", "inputs", "wrongs"];
+//       const actions = users.map(async (user) => {
+//         let data = [];
+//         for (var i = 0; i < types.length; i++) {
+//           data[types[i]] = await getTotalMessagesFromUserCsv(user.code, types[i]);
+//         }
 
-        userSorted.push({
-          code: user.code,
-          mail: user.mail,
-          gender: user.gender,
-          birthDate: user.birthDate,
-          subject: req.params.sessionName,
-          beganStudying: user.beganStudying,
-          numberOfSubjects: user.numberOfSubjects,
-          knownLanguages: user.knownLanguages,
-          signedUpOn: user.signedUpOn,
-          token: user.token,
-          room: user.room,
-          blind: user.blind,
-          jsexp: user.jsexp,
-          data: data,
-        });
+//         userSorted.push({
+//           code: user.code,
+//           mail: user.mail,
+//           gender: user.gender,
+//           birthDate: user.birthDate,
+//           subject: req.params.sessionName,
+//           beganStudying: user.beganStudying,
+//           numberOfSubjects: user.numberOfSubjects,
+//           knownLanguages: user.knownLanguages,
+//           signedUpOn: user.signedUpOn,
+//           token: user.token,
+//           room: user.room,
+//           blind: user.blind,
+//           jsexp: user.jsexp,
+//           data: data,
+//         });
 
-      });
+//       });
 
-      const results = Promise.all(actions);
-      results.then(() => {
-        let dataUsers = [];
-        for (let i = 0; i < userSorted.length; i++) {
-          dataUsers[i] = userSorted[i].data;
-        }
-        let calc = calculateStudentsData(dataUsers);
-        generateDictionary(calc, userSorted);
+//       const results = Promise.all(actions);
+//       results.then(() => {
+//         let dataUsers = [];
+//         for (let i = 0; i < userSorted.length; i++) {
+//           dataUsers[i] = userSorted[i].data;
+//         }
+//         let calc = calculateStudentsData(dataUsers);
+//         generateDictionary(calc, userSorted);
 
-        // res.send(userSorted);
-        if (!fs.existsSync('./tmp')) {
-          fs.mkdirSync('./tmp');
-        }
+//         // res.send(userSorted);
+//         if (!fs.existsSync('./tmp')) {
+//           fs.mkdirSync('./tmp');
+//         }
 
-        //Save CSV into server
-        writeCsv(userSorted, 'tmp/')
-          .then(() => {
-            R.executeRScript("./scripts/test.r");
-            readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
-              if (err) {
-                console.log(err);
-                throw new Error(err);
-              }
-              const jsonObj = csvjson.toObject(fileContent);
+//         //Save CSV into server
+//         writeCsv(userSorted, 'tmp/')
+//           .then(() => {
+//             R.executeRScript("./scripts/test.r");
+//             readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
+//               if (err) {
+//                 console.log(err);
+//                 throw new Error(err);
+//               }
+//               const jsonObj = csvjson.toObject(fileContent);
 
-              res.send(jsonObj);
+//               res.send(jsonObj);
 
-              console.log("Deleting CSV files");
-              fs.readdir('./tmp', (err, files) => {
-                if (err) throw err;
+//               console.log("Deleting CSV files");
+//               fs.readdir('./tmp', (err, files) => {
+//                 if (err) throw err;
 
-                for (const file of files) {
-                  fs.unlink(path.join('./tmp', file), err => {
-                    if (err) throw err;
-                  });
-                }
-              });
-            });
-          });
-      });
+//                 for (const file of files) {
+//                   fs.unlink(path.join('./tmp', file), err => {
+//                     if (err) throw err;
+//                   });
+//                 }
+//               });
+//             });
+//           });
+//       });
 
 
-    } catch (e) {
-      console.log(e);
-      res.sendStatus(500);
-    }
-  } else {
-    res.sendStatus(401);
-  }
-});
+//     } catch (e) {
+//       console.log(e);
+//       res.sendStatus(500);
+//     }
+//   } else {
+//     res.sendStatus(401);
+//   }
+// });
 
 
 function execShellCommand(cmd) {
@@ -1169,7 +1165,7 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
         writeCsv(userSorted, './scripts/analysis/' + req.params.sessionName + '/')
           .then(() => {
             R.executeRScript(req.params.sessionName, process.cwd() + '/scripts/render.r');
-            res.sendStatus(200);
+            res.json(userSorted);
             // readFile('./scripts/analysis/'+req.params.sessionName+'/result.csv', 'utf-8', (err, fileContent) => {
             //   if (err) {
             //     console.log(err);
