@@ -12,29 +12,25 @@ params:
 # install.packages("plotly")
 # install.packages("ggplot2")
 # install.packages("png")
-print(.libPaths())
 ```
 ```{r Import-Libraries}
-# .libPaths('D:/R-4.1.1/library')
-# .library('/Library/Frameworks/R.framework/Versions/4.1/Resources/library')
-
 library(tidyverse)
 library(ggplot2)
 library(plotly)
 library(htmlwidgets)
 library(png)
-
 ```
 # Reading user data CSV
 ```{r Get-Data-From-CSV}
 path <- paste("./analysis/",params$session,"/dataset.csv",sep="")
 data <- read.csv(file = path, stringsAsFactors = FALSE)
+data 
 ```
 # Example sorting data by user ID code -> chanfe decreasing to check results
 ```{r Sort-Data-And-Save-CSV}
 dataFinal <- data[order(data[, "CODE"]), , drop = FALSE]
 df <- data.frame(dataFinal)
-write.csv(df, file = paste("./analysis/",params$session,'/result.csv'))
+write.csv(df, file = paste("./analysis/",params$session,'/result.csv',sep=""))
 ```
 # Writing user data in final CSV
 # Loop over the messages sent in different exercises

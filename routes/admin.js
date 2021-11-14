@@ -5,6 +5,7 @@ const Test = require("../models/Test.js");
 // const Exercise = require("../models/Exercise.js")
 const Logger = require("../logger.js");
 const User = require("../models/User.js");
+const Room = require("../models/Room.js");
 const Session = require("../models/Session.js");
 const Log = require("../models/Log.js");
 const consumer = require("../consumer.js");
@@ -145,6 +146,10 @@ router.get("/sessions/:sessionName/:type", async (req, res) => {
         subject: req.params.sessionName,
       });
       let userSorted = [];
+      // const rooms = await Room.find({
+      //   environment: process.env.NODE_ENV,
+      //   session: req.params.sessionName,
+      // })
       const actions = users.map(async (user) => {
         let data = await getTotalMessagesFromUser(user.code, req.params.type);
         if (userSorted[user.room]) {
@@ -332,7 +337,7 @@ router.put("/sessions/:sessionName", (req, res) => {
 
 router.post("/tests", (req, res) => {
   const adminSecret = req.headers.authorization;
-  
+
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
       let newTest = new Test();
@@ -993,10 +998,10 @@ async function writeCsv(userSorted, path = '') {
   //       writeCsv(userSorted);
   //     });
   // } else { //if empty just write and return path
-    csvWriter
-      .writeRecords(userSorted)
-      .then(() => console.log('Data uploaded into csv successfully'));
-    return path + 'dataset.csv';
+  await csvWriter
+    .writeRecords(userSorted)
+    .then(() => console.log('Data uploaded into csv successfully'));
+  return path + 'dataset.csv';
   // }
 }
 
@@ -1096,7 +1101,7 @@ function execShellCommand(cmd) {
       if (error) {
         console.warn(error);
       } else if (stdout) {
-        console.log(stdout); 
+        console.log(stdout);
       } else {
         console.log(stderr);
       }
@@ -1157,33 +1162,34 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
         if (!fs.existsSync('./scripts/analysis/')) {
           fs.mkdirSync('./scripts/analysis/');
         }
-        if (!fs.existsSync('./scripts/analysis/'+ req.params.sessionName)) {
-          fs.mkdirSync('./scripts/analysis/'+ req.params.sessionName);
+        if (!fs.existsSync('./scripts/analysis/' + req.params.sessionName)) {
+          fs.mkdirSync('./scripts/analysis/' + req.params.sessionName);
         }
         //Save CSV into server
-        writeCsv(userSorted, './scripts/analysis/'+req.params.sessionName+'/')
-        .then(() => {
-          R.executeRScript(req.params.sessionName,'./scripts/render.r');
-          // readFile('./scripts/analysis/'+req.params.sessionName+'/result.csv', 'utf-8', (err, fileContent) => {
-          //   if (err) {
-          //     console.log(err);
-          //     throw new Error(err);
-          //   }
-          //   const jsonObj = csvjson.toObject(fileContent);
-          //   res.send(jsonObj);
+        writeCsv(userSorted, './scripts/analysis/' + req.params.sessionName + '/')
+          .then(() => {
+            R.executeRScript(req.params.sessionName, process.cwd() + '/scripts/render.r');
+            res.sendStatus(200);
+            // readFile('./scripts/analysis/'+req.params.sessionName+'/result.csv', 'utf-8', (err, fileContent) => {
+            //   if (err) {
+            //     console.log(err);
+            //     throw new Error(err);
+            //   }
+            //   const jsonObj = csvjson.toObject(fileContent);
+            //   res.send(jsonObj);
 
-          //   console.log("Deleting CSV files");
-          //   fs.readdir('./tmp', (err, files) => {
-          //     if (err) throw err;
+            //   console.log("Deleting CSV files");
+            //   fs.readdir('./tmp', (err, files) => {
+            //     if (err) throw err;
 
-          //     for (const file of files) {
-          //       fs.unlink(path.join('./tmp', file), err => {
-          //         if (err) throw err;
-          //       });
-          //     }
-          //   });
-          // });
-        });
+            //     for (const file of files) {
+            //       fs.unlink(path.join('./tmp', file), err => {
+            //         if (err) throw err;
+            //       });
+            //     }
+            //   });
+            // });
+          });
       });
 
     } catch (e) {
