@@ -12,7 +12,7 @@ const consumer = require("../consumer.js");
 
 const csvwriter = require('csv-writer');
 // const R  = require('r-script')
-const R = require('r-integration');
+const R = require('r-integration-modified');
 const fs = require('fs');
 const multer = require('multer');
 const upload = multer({ dest: 'tmp/' });
