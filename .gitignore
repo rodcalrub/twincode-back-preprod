@@ -33,8 +33,9 @@ bower_components
 build/Release
 
 # Dependency directories
+!node_modules/r-integration-modified
+
 node_modules/
-!node_modules/r-integration
 jspm_packages/
 
 # TypeScript v1 declaration files
