@@ -64,3 +64,5 @@ typings/
 .DS_Store
 
 sandbox.js
+
+scripts/analysis/
