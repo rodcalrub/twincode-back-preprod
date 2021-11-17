@@ -1103,7 +1103,7 @@ function execShellCommand(cmd) {
 
 router.get("/analyze/:sessionName/show", async (req, res) => {
   const adminSecret = req.headers.authorization;
-  
+
 
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
@@ -1163,19 +1163,21 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
             console.log("Executing R script test.r");
             try {
               R.executeRScript(req.params.sessionName, process.cwd() + '/scripts/render.r');
-            } catch (error) {
-              console.error("Error executing R script"+error);
-            }
-            console.log("Finished R script execution, files generated: ");
-            const resultAnalysisFolder = './scripts/analysis/'+req.params.sessionName+'/';
+              console.log("Finished R script execution, files generated: ");
+              const resultAnalysisFolder = './scripts/analysis/' + req.params.sessionName + '/';
 
-            fs.readdir(resultAnalysisFolder, (err, files) => {
-              files.forEach(file => {
-                console.log(" - "+file);
+              fs.readdir(resultAnalysisFolder, (err, files) => {
+                files.forEach(file => {
+                  console.log(" - " + file);
+                });
+                console.log("----------------------------------------------------------------");
               });
-              console.log("----------------------------------------------------------------");
-            });
-            res.json(userSorted);
+              res.json(userSorted);
+
+            } catch (error) {
+              console.error("Error executing R script" + error);
+            }
+
             // readFile('./scripts/analysis/'+req.params.sessionName+'/result.csv', 'utf-8', (err, fileContent) => {
             //   if (err) {
             //     console.log(err);
