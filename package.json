@@ -29,7 +29,7 @@
     "nodemailer": "^6.4.6",
     "papaparse": "^5.2.0",
     "pug": "^2.0.4",
-    "r-integration-modified": "1.2.5",
+    "r-integration-modified": "1.2.6",
     "r-script": "0.0.4",
     "socket.io": "^2.0.4"
   },
