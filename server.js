@@ -16,6 +16,8 @@ app._consumer = null;
 app.use(cors());
 app.options("*", cors());
 
+app.use(express.static(__dirname + "/scripts/analysis"));
+
 app.use(bodyParser.json());
 app.use(cookieParser());
 
