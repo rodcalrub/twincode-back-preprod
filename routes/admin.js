@@ -24,6 +24,43 @@ const path = require('path');
 
 var createCsvWriter = csvwriter.createObjectCsvWriter
 
+const AWS = require('aws-sdk');
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  signatureVersion: 'v4',
+  region: 'eu-west-3'
+});
+
+const uploadFile = (fileName,file) => {
+  // Read content from the file
+  const fileContent = fs.readFileSync(fileName);
+
+  // Setting up S3 upload parameters
+  var params = {
+    Bucket: 'twincode-image-analysis',
+    Key: file, // File name you want to save as in S3
+    Body: fileContent
+  };
+
+  // Uploading files to the bucket
+  s3.upload(params, function (err, data) {
+    if (err) {
+      throw err;
+    }
+    console.log(`File uploaded successfully. ${data.Location}`);
+  });
+
+};
+const signFileURl = (key) => {
+  const url = s3.getSignedUrl('getObject', {
+    Bucket: 'twincode-image-analysis',
+    Key: key,
+    Expires: 60 * 60
+  });
+  return url;
+};
 /**
  * SESSIONS
  */
@@ -1083,6 +1120,7 @@ router.get("/analyze/:sessionName", async (req, res) => {
 
 
 
+
 router.get("/analyze/:sessionName/show", async (req, res) => {
   const adminSecret = req.headers.authorization;
   if (adminSecret === process.env.ADMIN_SECRET) {
@@ -1141,10 +1179,27 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
           .then(() => {
             try {
               R.executeRScript(req.params.sessionName, process.cwd() + '/scripts/render.r');
-              res.json(userSorted);
             } catch (error) {
               console.error("Error executing R script" + error);
             }
+            const urls = [];
+            var url = '';
+            try { // bucle sobre las imágenes
+              const resultAnalysisFolder = './scripts/analysis/' + req.params.sessionName + '/';
+              fs.readdir('./scripts/analysis/' + req.params.sessionName + '/', (err, files) => {
+                files.forEach(file => {
+                  uploadFile('./scripts/analysis/' + req.params.sessionName + '/' + file,file);
+                  url = signFileURl(file);
+                  urls.push(url);
+                });
+                res.json({ 'urls': urls, 'data': userSorted });
+              });
+              
+            } catch (error) {
+              console.error("Error uploading file" + error);
+            }
+
+
           });
       });
     } catch (e) {

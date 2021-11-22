@@ -368,13 +368,8 @@ pre code {
 # install.packages(&quot;htmlwidgets&quot;)
 # install.packages(&quot;plotly&quot;)
 # install.packages(&quot;ggplot2&quot;)
-# install.packages(&quot;png&quot;)
-print(.libPaths())</code></pre>
-<pre><code>## [1] &quot;D:/R-4.1.1/library&quot;                 &quot;C:/Program Files/R/R-4.1.1/library&quot;</code></pre>
-<pre class="r"><code># .libPaths(&#39;D:/R-4.1.1/library&#39;)
-# .library(&#39;/Library/Frameworks/R.framework/Versions/4.1/Resources/library&#39;)
-
-library(tidyverse)</code></pre>
+# install.packages(&quot;png&quot;)</code></pre>
+<pre class="r"><code>library(tidyverse)</code></pre>
 <pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --</code></pre>
 <pre><code>## v ggplot2 3.3.5     v purrr   0.3.4
 ## v tibble  3.1.4     v dplyr   1.0.7
@@ -416,8 +411,8 @@ data </code></pre>
 ## 1 Mon Apr 13 2020 18:24:05 GMT+0200 (hora de verano de Europa central)    NA
 ## 2 Mon Apr 13 2020 18:24:05 GMT+0200 (hora de verano de Europa central)    NA
 ##   ROOM BLIND JSEXP MESSAGES1.1 MESSAGES2.1 MESSAGES1.1.T MESSAGES2.1.T
-## 1   NA    NA    NA          10           0            14             0
-## 2   NA    NA    NA           4           0            14             0
+## 1  100    NA    NA          10           0            14             0
+## 2  100    NA    NA           4           0            14             0
 ##   RIGHTS1.1 RIGHTS2.1 RIGHTS1.1.T RIGHTS2.1.T DELETIONS1.1 DELETIONS2.1
 ## 1         1         0           3           0            2            0
 ## 2         2         0           3           0            2            0
@@ -428,14 +423,11 @@ data </code></pre>
 ## 1         0         0           0           0
 ## 2         0         0           0           0</code></pre>
 </div>
-<div id="example-sorting-data-by-user-id-code---chanfe-decreasing-to-check-results" class="section level1">
-<h1>Example sorting data by user ID code -&gt; chanfe decreasing to check results</h1>
+<div id="example-sorting-data-by-user-id-code" class="section level1">
+<h1>Example sorting data by user ID code</h1>
 <pre class="r"><code>dataFinal &lt;- data[order(data[, &quot;CODE&quot;]), , drop = FALSE]
 df &lt;- data.frame(dataFinal)
 write.csv(df, file = paste(&quot;./analysis/&quot;,params$session,&#39;/result.csv&#39;,sep=&quot;&quot;))</code></pre>
-</div>
-<div id="writing-user-data-in-final-csv" class="section level1">
-<h1>Writing user data in final CSV</h1>
 </div>
 <div id="loop-over-the-messages-sent-in-different-exercises" class="section level1">
 <h1>Loop over the messages sent in different exercises</h1>
@@ -449,19 +441,14 @@ for (i in seq_along(messages)) {
         exercise &lt;-c(df[names(messages)[i]])
         value &lt;- unlist(exercise[1], use.names=FALSE)
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
-        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+        ggplot(data=df, aes(x=as.factor(CODE), y=value)) +
          geom_bar(stat=&quot;identity&quot;)
         ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
-        # ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-        #  geom_bar(stat=&quot;identity&quot;)
-        # ggsave(paste(&quot;./plots/messages/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;MESSAGES1-1 c(10, 4)&quot;</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
-<pre><code>## Warning: Use of `df$CODE` is discouraged. Use `CODE` instead.</code></pre>
 <pre><code>## [1] &quot;MESSAGES2-1 c(0, 0)&quot;</code></pre>
 <pre><code>## Saving 7 x 5 in image</code></pre>
-<pre><code>## Warning: Use of `df$CODE` is discouraged. Use `CODE` instead.</code></pre>
 <pre class="r"><code>rights &lt;- df %&gt;%
         select(matches(&#39;RIGHTS[1-9].[1-9]$&#39;))
 
@@ -473,7 +460,7 @@ for (i in seq_along(rights)) {
         value &lt;- unlist(exercise[1], use.names=FALSE)
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-                geom_bar(stat=&quot;identity&quot;)
+         geom_bar(stat=&quot;identity&quot;)
         ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;RIGHTS1-1 1:2&quot;</code></pre>
@@ -493,7 +480,7 @@ for (i in seq_along(deletions)) {
         value &lt;- unlist(exercise[1], use.names=FALSE)
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-                geom_bar(stat=&quot;identity&quot;)
+         geom_bar(stat=&quot;identity&quot;)
         ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;DELETIONS1-1 c(2, 2)&quot;</code></pre>
@@ -513,7 +500,7 @@ for (i in seq_along(inputs)) {
         value &lt;- unlist(exercise[1], use.names=FALSE)
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-                geom_bar(stat=&quot;identity&quot;)
+         geom_bar(stat=&quot;identity&quot;)
         ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;INPUTS1-1 c(15, 15)&quot;</code></pre>
@@ -533,7 +520,7 @@ for (i in seq_along(wrongs)) {
         value &lt;- unlist(exercise[1], use.names=FALSE)
         file &lt;- paste(exerciseName,&quot;.png&quot;, sep=&quot;&quot;)
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-                geom_bar(stat=&quot;identity&quot;)
+         geom_bar(stat=&quot;identity&quot;)
         ggsave(paste(&quot;./analysis/&quot;,params$session,&quot;/analysis_&quot;,file, sep=&quot;&quot;))
 }</code></pre>
 <pre><code>## [1] &quot;WRONGS1-1 c(0, 0)&quot;</code></pre>
