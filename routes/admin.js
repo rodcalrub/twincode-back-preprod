@@ -156,8 +156,7 @@ router.get("/sessions/:sessionName/:type", async (req, res) => {
       });
       const results = Promise.all(actions);
       results.then(() => {
-        res.send(userSorted); // Corrected to (no respone in reports)
-        // res.send(userOrdered); TODO: Corrected from
+        res.send(userSorted);
       });
     } catch (e) {
       console.log(e);
@@ -967,6 +966,7 @@ async function writeCsv(userSorted, path = '') {
 
   var keys = Object.keys(userSorted[0]);
   var header = [];
+
   for (let n = 0; n < keys.length; n++) {
     header.push({
       id: keys[n],
@@ -979,21 +979,10 @@ async function writeCsv(userSorted, path = '') {
     path: path + 'dataset.csv',
     header: header
   });
-
-  //If path not empty -> we write the csv and run Rscript
-  // if (path) {
-  //   csvWriter
-  //     .writeRecords(userSorted)
-  //     .then(() => {
-  //       console.log("Uploaded CSV into server " + path);
-  //       writeCsv(userSorted);
-  //     });
-  // } else { //if empty just write and return path
   await csvWriter
     .writeRecords(userSorted)
     .then(() => console.log('Data uploaded into csv successfully'));
   return path + 'dataset.csv';
-  // }
 }
 
 router.get("/analyze/:sessionName", async (req, res) => {
@@ -1043,15 +1032,23 @@ router.get("/analyze/:sessionName", async (req, res) => {
         generateDictionary(calc, userSorted);
 
         // res.send(userSorted);
-        if (!fs.existsSync('./tmp')) {
-          fs.mkdirSync('./tmp');
+        if (!fs.existsSync('./scripts/analysis/')) {
+          fs.mkdirSync('./scripts/analysis/');
+        }
+        if (!fs.existsSync('./scripts/analysis/' + req.params.sessionName)) {
+          fs.mkdirSync('./scripts/analysis/' + req.params.sessionName);
         }
 
         //Save CSV into server
-        writeCsv(userSorted, 'tmp/')
+        writeCsv(userSorted, './scripts/analysis/' + req.params.sessionName + '/')
           .then(() => {
-            R.executeRScript("./scripts/test.r");
-            readFile('./tmp/result.csv', 'utf-8', (err, fileContent) => {
+            try {
+              R.executeRScript(req.params.sessionName, "./scripts/test.r");
+            }
+            catch (error) {
+              console.error("Error executing R script" + error);
+            }
+            readFile('./scripts/analysis/' + req.params.sessionName + '/result.csv', 'utf-8', (err, fileContent) => {
               if (err) {
                 console.log(err);
                 throw new Error(err);
@@ -1061,11 +1058,11 @@ router.get("/analyze/:sessionName", async (req, res) => {
               res.send(jsonObj);
 
               console.log("Deleting CSV files");
-              fs.readdir('./tmp', (err, files) => {
+              fs.readdir('./scripts/analysis/' + req.params.sessionName, (err, files) => {
                 if (err) throw err;
 
                 for (const file of files) {
-                  fs.unlink(path.join('./tmp', file), err => {
+                  fs.unlink(path.join('./scripts/analysis/' + req.params.sessionName, file), err => {
                     if (err) throw err;
                   });
                 }
@@ -1088,8 +1085,6 @@ router.get("/analyze/:sessionName", async (req, res) => {
 
 router.get("/analyze/:sessionName/show", async (req, res) => {
   const adminSecret = req.headers.authorization;
-
-
   if (adminSecret === process.env.ADMIN_SECRET) {
     try {
       console.log("Retrieving reports in csv");
@@ -1132,7 +1127,6 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
         let calc = calculateStudentsData(dataUsers);
         generateDictionary(calc, userSorted);
 
-        // res.send(userSorted);
         if (!fs.existsSync('./tmp')) {
           fs.mkdirSync('./tmp');
         }
@@ -1145,46 +1139,14 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
         //Save CSV into server
         writeCsv(userSorted, './scripts/analysis/' + req.params.sessionName + '/')
           .then(() => {
-            console.log("Executing R script test.r");
             try {
               R.executeRScript(req.params.sessionName, process.cwd() + '/scripts/render.r');
-              console.log("Finished R script execution, files generated: ");
-              const resultAnalysisFolder = './scripts/analysis/' + req.params.sessionName + '/';
-
-              fs.readdir(resultAnalysisFolder, (err, files) => {
-                files.forEach(file => {
-                  console.log(" - " + file);
-                });
-                console.log("----------------------------------------------------------------");
-              });
               res.json(userSorted);
-
             } catch (error) {
               console.error("Error executing R script" + error);
             }
-
-            // readFile('./scripts/analysis/'+req.params.sessionName+'/result.csv', 'utf-8', (err, fileContent) => {
-            //   if (err) {
-            //     console.log(err);
-            //     throw new Error(err);
-            //   }
-            //   const jsonObj = csvjson.toObject(fileContent);
-            //   res.send(jsonObj);
-
-            //   console.log("Deleting CSV files");
-            //   fs.readdir('./tmp', (err, files) => {
-            //     if (err) throw err;
-
-            //     for (const file of files) {
-            //       fs.unlink(path.join('./tmp', file), err => {
-            //         if (err) throw err;
-            //       });
-            //     }
-            //   });
-            // });
           });
       });
-
     } catch (e) {
       console.log(e);
       res.sendStatus(500);

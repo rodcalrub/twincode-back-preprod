@@ -26,13 +26,12 @@ path <- paste("./analysis/",params$session,"/dataset.csv",sep="")
 data <- read.csv(file = path, stringsAsFactors = FALSE)
 data 
 ```
-# Example sorting data by user ID code -> chanfe decreasing to check results
+# Example sorting data by user ID code
 ```{r Sort-Data-And-Save-CSV}
 dataFinal <- data[order(data[, "CODE"]), , drop = FALSE]
 df <- data.frame(dataFinal)
 write.csv(df, file = paste("./analysis/",params$session,'/result.csv',sep=""))
 ```
-# Writing user data in final CSV
 # Loop over the messages sent in different exercises
 ```{r Messages-plot}
 messages <- df %>%
@@ -45,14 +44,9 @@ for (i in seq_along(messages)) {
         exercise <-c(df[names(messages)[i]])
         value <- unlist(exercise[1], use.names=FALSE)
         file <- paste(exerciseName,".png", sep="")
-        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-         geom_bar(stat="identity")
-        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
-        # ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
-        #  geom_bar(stat="identity")
-        # ggsave(paste("./plots/messages/analysis_",file, sep=""))
+        png(paste("./analysis/",params$session,"/analysis_",file, sep=""))
+        myplot <- ggplot(data=df, aes(x=as.factor(CODE), y=value)) +geom_bar(stat="identity")
 }
-
 ```
 ```{r Rights-Plot}
 rights <- df %>%
@@ -65,9 +59,9 @@ for (i in seq_along(rights)) {
         exercise <-c(df[names(rights)[i]])
         value <- unlist(exercise[1], use.names=FALSE)
         file <- paste(exerciseName,".png", sep="")
-        ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
+        png(paste("./analysis/",params$session,"/analysis_",file, sep=""))
+        myplot <- ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
 ```{r Deletions-Plot}
@@ -81,9 +75,9 @@ for (i in seq_along(deletions)) {
         exercise <-c(df[names(deletions)[i]])
         value <- unlist(exercise[1], use.names=FALSE)
         file <- paste(exerciseName,".png", sep="")
+        png(paste("./analysis/",params$session,"/analysis_",file, sep=""))
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
 ```{r Inputs-Plot}
@@ -97,9 +91,9 @@ for (i in seq_along(inputs)) {
         exercise <-c(df[names(inputs)[i]])
         value <- unlist(exercise[1], use.names=FALSE)
         file <- paste(exerciseName,".png", sep="")
+        png(paste("./analysis/",params$session,"/analysis_",file, sep=""))
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
 ```{r Wrongs-Plot}
@@ -113,8 +107,8 @@ for (i in seq_along(wrongs)) {
         exercise <-c(df[names(wrongs)[i]])
         value <- unlist(exercise[1], use.names=FALSE)
         file <- paste(exerciseName,".png", sep="")
+        png(paste("./analysis/",params$session,"/analysis_",file, sep=""))
         ggplot(data=df, aes(x=as.factor(df$CODE), y=value)) +
                 geom_bar(stat="identity")
-        ggsave(paste("./analysis/",params$session,"/analysis_",file, sep=""))
 }
 ```
