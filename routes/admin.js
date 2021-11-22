@@ -57,7 +57,8 @@ const signFileURl = (key) => {
   const url = s3.getSignedUrl('getObject', {
     Bucket: 'twincode-image-analysis',
     Key: key,
-    Expires: 60 * 60
+    Expires: 60 * 60,
+    ResponseContentType: 'application/x-www-form-urlencoded; charset=UTF-8' 
   });
   return url;
 };
