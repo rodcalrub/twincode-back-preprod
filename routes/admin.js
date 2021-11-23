@@ -58,8 +58,9 @@ const signFileURl = (key) => {
     Bucket: 'twincode-image-analysis',
     Key: key,
     Expires: 60 * 60,
-    ResponseContentType: 'application/x-www-form-urlencoded; charset=UTF-8' 
+    ResponseContentType: 'application/x-www-form-urlencoded;'
   });
+  console.log(url);
   return url;
 };
 /**
