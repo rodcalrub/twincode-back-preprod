@@ -33,7 +33,7 @@ const s3 = new AWS.S3({
   region: 'eu-west-3'
 });
 
-const uploadFile = (fileName,file) => {
+const uploadFile = (fileName, file) => {
   // Read content from the file
   const fileContent = fs.readFileSync(fileName);
 
@@ -1120,8 +1120,43 @@ router.get("/analyze/:sessionName", async (req, res) => {
   }
 });
 
+function parseUrlsForTest(urls) {
+  var objs = {};
+  var result = {};
+  for (url in urls) {
+
+    var test = urls[url][1].split('').reverse().join('').charAt(6);
+    var exercise = urls[url][1].split('').reverse().join('').charAt(4);
+    var key = urls[url][1];
+    var url = urls[url][0];
+    var objTestF = {}
+    var testExercise = test + '-' + exercise;
+
+    objType = { [key]: url };
+    objTest = { [testExercise]: [objType] };
+
+    if (testExercise in result) {
+      objTestF = result[testExercise];
+      objTestF.push(objType);
+      result[testExercise] = objTestF;
+    } else {
+      result[testExercise] = [objType];
+    }
 
 
+    // if (!(test in objs)) {
+    //   objs[test] = objTest;
+    // } else {
+    //   if(!(exercise in objs[test])){
+    //     objTest[test][exercise] = objType;
+    //   }
+    //   objTestF = objs[test]; //Cogemos el test
+    //   objTest[test].push(objType); //añadimos el ejercicio en el test ya inicializado
+    //   objs[test] = objTest;
+    // }
+  }
+  return result;
+}
 
 router.get("/analyze/:sessionName/show", async (req, res) => {
   const adminSecret = req.headers.authorization;
@@ -1190,18 +1225,16 @@ router.get("/analyze/:sessionName/show", async (req, res) => {
               const resultAnalysisFolder = './scripts/analysis/' + req.params.sessionName + '/';
               fs.readdir('./scripts/analysis/' + req.params.sessionName + '/', (err, files) => {
                 files.forEach(file => {
-                  uploadFile('./scripts/analysis/' + req.params.sessionName + '/' + file,file);
+                  uploadFile('./scripts/analysis/' + req.params.sessionName + '/' + file, file);
                   url = signFileURl(file);
-                  urls.push(url);
+                  urls.push([url, file]);
                 });
-                res.json({ 'urls': urls, 'data': userSorted });
+                var finalUrls = parseUrlsForTest(urls);
+                res.json({ 'urls': finalUrls, 'data': userSorted });
               });
-              
             } catch (error) {
               console.error("Error uploading file" + error);
             }
-
-
           });
       });
     } catch (e) {
